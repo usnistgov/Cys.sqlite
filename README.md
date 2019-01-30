@@ -10,3 +10,14 @@ The original is version corresponds to the associated publication (insert link).
 ### Database updates
 
 Updates of Cys.sqlite will be carried out periodically.  The current update goal is quarterly or in response to requests posted as issues or emails.  Such requests are useful for gauging the interest in Cys.sqlite and the need for further development of the resource.
+
+
+### Contact Information
+
+  Demian Riccardi
+  
+  NIST Applied Chemicals & Materials Division
+  
+  Boulder, CO 80305
+  
+  demian.riccardi@nist.gov
