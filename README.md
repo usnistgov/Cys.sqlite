@@ -5,7 +5,7 @@ Cys.sqlite is a single file database containing comprehensive coverage of cystei
 - 2018-12-22:  <https://trc.nist.gov/jcim_cys.sqlite.gz>
 - 2018-12-22:  <https://trc.nist.gov/cys.sqlite.gz>
 
-The original is version corresponds to the associated publication (insert link).  Please cite the original article if Cys.sqlite or the code included here is useful to your research efforts.
+The original version corresponds to the used in associated publication (insert link).  Please cite the original article if Cys.sqlite or the code included here is useful to your research efforts.
 
 ### Database updates
 
