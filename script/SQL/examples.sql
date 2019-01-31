@@ -6,7 +6,7 @@ FROM    PDB pdb
 WHERE   pdb.exp_method = 'X-RAY DIFFRACTION'
   AND   pdb.resolution <= 1.5
   AND   pdb.status = 'CURRENT'
-  AND   cys_cys.alt_occ_flag is not NULL
+  AND   cys_cys.alt_occ_flag IS NOT NULL
 
 /* calculate average DSE for X-Ray <= 1.2 with full occupancy */
 SELECT  avg(cys_cys.dse), count (cys_cys.dse)
@@ -16,7 +16,7 @@ FROM    PDB pdb
 WHERE   pdb.exp_method = 'X-RAY DIFFRACTION'
   AND   pdb.resolution <= 1.2
   AND   pdb.status = 'CURRENT'
-  AND   cys_cys.alt_occ_flag is NULL
+  AND   cys_cys.alt_occ_flag IS NULL
 
 
 /* 
@@ -53,8 +53,8 @@ WHERE   cys_cys.pdb_id IS NULL
 SELECT distinct ss.id, ss.dse, conf.sg_occ
 FROM   CYS_CONF conf
        JOIN CYS_CYS ss
-        on conf.id = ss.cys_conf_idi or conf.id = ss.cys_conf_idj
-WHERE  conf.sg_occ < 1 or conf.alt_id is not null    
+        ON conf.id = ss.cys_conf_idi OR conf.id = ss.cys_conf_idj
+WHERE  conf.sg_occ < 1 OR conf.alt_id IS NOT null    
 
 /* 
   select pdb.id cys_cys.mol_code and cys_cys.dse for all 
@@ -93,4 +93,17 @@ FROM    Cys_Cys cys_cys
         JOIN Chain_Cys chain
             ON chain.id = cys_cys.chain_idi OR
                   chain.id = cys_cys.chain_idj
-WHERE   cys_cys.pdb_id = '3S0A' and chain.asym_id = 'A'
+WHERE   cys_cys.pdb_id = '3S0A' 
+    AND chain.asym_id = 'A'
+
+/* average CA to CA distance for low-resolution entries matching IMMUNOGLOBULIN */
+SELECT AVG(ss.CAi_CAj), AVG(ss.dse),COUNT(ss.id)
+FROM CYS_CYS ss
+		JOIN PDB pdb
+			ON pdb.id = ss.pdb_id
+WHERE exp_method = "X-RAY DIFFRACTION"
+	AND keywords like "%IMMUNOGLOBULIN%"
+	AND pdb.resolution > 1.5
+
+
+
