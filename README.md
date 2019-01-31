@@ -5,7 +5,7 @@ Cys.sqlite is a single file database containing comprehensive coverage of cystei
 - 2018-12-22:  <https://trc.nist.gov/jcim_cys.sqlite.gz>
 - 2018-12-22:  <https://trc.nist.gov/cys.sqlite.gz>
 
-The original version corresponds to that used in the associated publication (insert link).  Please cite the original article if Cys.sqlite or the code included here is useful to your research efforts.
+The original version corresponds to that used in the associated publication, titled [Cys.sqlite: A structured-information approach to the comprehensive analysis of cysteine disulfide bonds in the Protein Databank](https://doi.org/10.1021/acs.jcim.8b00950).  Please cite the original article if Cys.sqlite or the code included here is useful to your research efforts.
 
 ### Database updates
 
