@@ -105,5 +105,9 @@ WHERE exp_method = "X-RAY DIFFRACTION"
 	AND keywords like "%IMMUNOGLOBULIN%"
 	AND pdb.resolution > 1.5
 
-
-
+/* display info for collection of pdb_ids discussed in publication*/
+SELECT pdb.exp_method_identity_cutoff, pdb.id, chain.entity_id, chain.asym_id,  entity.sequence 
+FROM   PDB pdb
+       JOIN Chain_cys chain ON chain.pdb_id = pdb.id
+       JOIN EntityCys entity ON entity.id = chain.entity_id
+WHERE pdb.id in ('2KEI', '2KEJ', '2KEK', '1L1M', '1OSL')
