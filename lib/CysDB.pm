@@ -178,7 +178,8 @@ sub fetch_rcsb_pdbids {
     my $tx    = $ua->post( $url,
         { 'Content-Type' => 'application/x-www-form-urlencoded' }, $query );
     my @pdbids;
-    if ( my $res = $tx->success ) {
+    if ( !$tx->error ) {
+        my $res = $tx->result;
         @pdbids = map { lc } split /\n/, $res->body;
     }
     else {
