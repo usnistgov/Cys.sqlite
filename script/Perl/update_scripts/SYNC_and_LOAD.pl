@@ -31,8 +31,8 @@ sub load_cifs {
     my $json_file = shift;
     my $log_file  = shift;
     say
-"running the load db_script/util/01_build_tables.pl on $json_file. appending to build_cys-sqlite.log";
-    system("perl db_script/util/01_build_tables.pl $json_file >> $log_file");
+"running the load script/Perl/update_scripts/util/01_build_tables.pl on $json_file. appending to build_cys-sqlite.log";
+    system("perl script/Perl/update_scripts/util/01_build_tables.pl $json_file >> $log_file");
 }
 
 sub SYNC_cifs {
@@ -47,14 +47,16 @@ sub SYNC_cifs {
     if ($json_file_override) {
         say "fetching pdbids from $json_file_override";
         $pdbids = $bldr_json->decode( path($json_file_override)->slurp );
-        die "nothing to be synced" unless @{$pdbids};
-        @pdbids = map { uc($_) } @$pdbids;
+        @pdbids = $CysDB->check_pdbids($pdbids);
+        say "@{[scalar(@pdbids)]} outstainding pdbids retrieved from json file";
     }
     else {
         say "fetching all pdbids with 1 or more disulfide bonds from RCSB";
-        @pdbids = map { uc($_) } $CysDB->fetch_rcsb_pdbids;
-        say "@{[scalar(@pdbids)]} pdbids were retrieved from the RCSB";
+        @pdbids = $CysDB->check_pdbids([$CysDB->fetch_rcsb_pdbids()]);
+        say "@{[scalar(@pdbids)]} outstanding pdbids were retrieved from the RCSB";
     }
+
+    die "nothing to be synced" unless @pdbids;
 
     my $bldr      = HackaMol->new();
 
@@ -69,13 +71,14 @@ sub SYNC_cifs {
         die "please check methods or report issue";
     }
 
-    if ( !scalar(@$synced_pdbids) ) {
-        die "nothing needed to be synced";
+    if ( scalar(@$synced_pdbids) != scalar(@pdbids) ) {
+        warn "@{[scalar(@$synced_pdbids)]} files synced;  @{[scalar(@pdbids)]} pdbids to be loaded";
     }
 
     my $date = strftime '%Y-%m-%d', localtime();
 
     my $db_loads_path = path("db_loads");
+    $db_loads_path->mkpath unless $db_loads_path->exists;
 
     #add incrementing postfix on date in filename if exists
     my $i = 0;
@@ -83,12 +86,12 @@ sub SYNC_cifs {
         $i++;
     }
 
-    my $sync_path = $db_loads_path->child("${date}_synced_$i.json");
+    my $sync_path = $db_loads_path->child("${date}_loadlist_$i.json");
     $sync_path->spew(
-        JSON::PP->new()->pretty->canonical->encode($synced_pdbids) );
+        JSON::PP->new()->pretty->canonical->encode(\@pdbids) );
 
     say "stored synced pdbids in @{[$sync_path->stringify]}";
-    return ( $sync_path->stringify, $synced_pdbids, \@pdbids );
+    return ( $sync_path->stringify, \@pdbids );
 }
 
 sub pdbids_load_cys_cys {

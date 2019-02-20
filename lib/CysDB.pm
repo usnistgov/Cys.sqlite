@@ -167,14 +167,14 @@ sub check_pdbids {
     my $self         = shift;
     my $pdbids_query = shift || die "array ref of pdb ids required for checking"; 
 
-    my %has_pdbid = map {$_ => 1} @$pdbids_query; 
-
     my @pdb_ids = $self->schema->resultset('PDB')                 # DBIX::Class  resultset for PDB table
                        ->search( undef, { columns => ['id'] } )   # select id from PDB
                        ->get_column('id')                         # get column of ids
                        ->all;                                     # send the list to the @pdb_ids array variable
 
-    return grep {! $has_pdbid{$_}} @pdb_ids;
+    my %has_pdbid = map {$_ => 1} @pdb_ids; # ids are uppercase in cys.sqlite 
+
+    return grep {! $has_pdbid{$_}} map {uc($_)} @{$pdbids_query};
     
 }
 
