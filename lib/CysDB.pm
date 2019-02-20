@@ -1,4 +1,5 @@
 package CysDB;
+#ABSTRACT:  Attributes and methods for interacting with Cys.sqlite
 use Moose;
 use MooseX::Types::Path::Tiny qw/Path Paths AbsPath AbsPaths/;
 use Modern::Perl;
@@ -162,13 +163,20 @@ sub get_pdbid_rcsb_describePDB {
 
 }
 
-=method fetch_rcsb_pdbids
+sub check_pdbids {
+    my $self         = shift;
+    my $pdbids_query = shift || die "array ref of pdb ids required for checking"; 
 
-uses the Mojo::UserAgent to post $self->rcsb_ss_query to $self->rcsb_rest_addr
+    my %has_pdbid = map {$_ => 1} @$pdbids_query; 
 
-returns @pdbids
+    my @pdb_ids = $self->schema->resultset('PDB')                 # DBIX::Class  resultset for PDB table
+                       ->search( undef, { columns => ['id'] } )   # select id from PDB
+                       ->get_column('id')                         # get column of ids
+                       ->all;                                     # send the list to the @pdb_ids array variable
 
-=cut
+    return grep {! $has_pdbid{$_}} @pdb_ids;
+    
+}
 
 sub fetch_rcsb_pdbids {
     my $self  = shift;
@@ -384,3 +392,49 @@ sub build_xml_identity_cutoff_query {
 }
 
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+CysDB - Perl, Moose, DBIX::Class, HackaMol library for interacting with the Cys.sqlite database
+
+=head1 SYNOPSIS
+
+  use Modern::Perl;
+  use lib 'lib';
+  use CysDB;
+  my $CysDB  = CysDB->new();                                      # create instance of CysDB class
+  my $schema = $CysDB->schema;                                    # connect and grab the schema  (Cys.sqlite is in workind directory)
+
+  my @pdb_ids = $schema->resultset('PDB')                         # DBIX::Class  resultset for PDB table
+                       ->search( undef, { columns => ['id'] } )   # select id from PDB
+                       ->get_column('id')                         # get column of ids
+                       ->all;                                     # send the list to the @pdb_ids array variable
+
+  say foreach @pdb_ids;
+
+=head1 DESCRIPTION
+
+WIP, updates and improvements to code base, Documentations, and tests will occur each Wednesday morning with RCSB PDB releases. Some goals of the library: 
+
+    - simplify maintenance of Cys.sqlite
+    - simplify maintenance of local PDBx/mmCIF files (they take up a lot of space and should be optional)
+    - ...
+
+=head1 fetch_rcsb_pdbids
+
+uses the Mojo::UserAgent to post $self->rcsb_ss_query to $self->rcsb_rest_addr
+
+returns @pdbids
+
+=head1 check_pdbids(['id1','id2',])
+
+argument, array ref containing pdbids to be checked against Cys.sqlite entries.  Returns array containing pdbids NOT in cys.sqlite
+
+    $CysDB->check_pdbids( [ $CysDB->fetch_rcsb_pdbids() ]) ; # to check against rcsb.  please minimize rcsb requests
+
+=cut
+
+
+
