@@ -44,6 +44,7 @@ say 'chaincys sanity check: ', $sum;
 my $cys_cys_rs = $schema->resultset('CysCys');
 
 my $running_sum = 0;
+printf ("%-8s %s %s %s %s\n",'Entity ID', 'pdbid_count', 'ss_count','total', 'ss/entity');
 foreach my $entity_id ( @sorted_entities[ 0 .. $N - 1 ] ) {
     my $cys_cys_count = $cys_cys_rs->search(
         [
@@ -57,7 +58,7 @@ foreach my $entity_id ( @sorted_entities[ 0 .. $N - 1 ] ) {
     $running_sum += $cys_cys_count;
 
     printf(
-        "%-8i %4i %4i %5i %.2f\n",
+        "%-9i %8i %9i %7i %6.2f\n",
         $entity_id, $entity_pdbid_count{$entity_id},
         $cys_cys_count, $running_sum, $cys_cys_count/$entity_pdbid_count{$entity_id}
     );
