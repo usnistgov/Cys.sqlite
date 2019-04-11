@@ -15,13 +15,14 @@ my @methods = ('X-RAY DIFFRACTION', 'SOLUTION NMR','ELECTRON MICROSCOPY');
 my @cutoffs = (100,50); 
 
 # carry out the rcsb query 
-my $sets = fetch_query(\@methods, \@cutoffs);
+my ($sets,$queries) = fetch_query(\@methods, \@cutoffs);
 
 die "sets are undefined" unless $sets;
 
 # accumulate pdb_id -> cutoff info
 #   carry out a few neurotic tests that have never failed 
 my %exp_ident;
+my %missing_overlap;
 foreach my $exp_method ( keys %{ $sets } ){
     #test for coverage
     my @sames = @{$sets->{$exp_method}{100}};
@@ -32,9 +33,18 @@ foreach my $exp_method ( keys %{ $sets } ){
     $exp_ident{$_} = 100 foreach @sames;
 
     foreach my $pdbid (@halfs){
-        die "where is it!? $pdbid" unless exists ($exp_ident{$pdbid});
+        unless (exists ($exp_ident{$pdbid})){
+            push @{$missing_overlap{$exp_method}}, $pdbid;
+        }
         $exp_ident{$pdbid} = 50 ;
     }
+}
+
+if (keys %missing_overlap){
+    use Data::Dumper;
+    warn "RCSB may have changed. Found PDB_IDs in the 50% group that are not in the 100% group:";
+    print Dumper {"Queries: " => $queries };
+    print Dumper {"50 not in 100" => \%missing_overlap};
 }
 
 # clear out identity cutoffs
@@ -53,17 +63,19 @@ sub fetch_query{
 
     my %sets;
 
+    my @queries;
     foreach my $expMethod(@$methods){
         foreach my $cutoff (@$cutoffs){
             my $cysdb = CysDB->new(query_expMethod => $expMethod, query_identityCutoff => $cutoff);
             my $query = $cysdb->build_xml_query();
+            push @queries, $query;
             my @pdbids = $cysdb->fetch_rcsb_pdbids($query);
             say "$expMethod $cutoff from RCSB: ", scalar(@pdbids), 
                 " in cys.sqlite: ", scalar( grep { exists($seen{uc($_)}) } @pdbids);
             $sets{$expMethod}{$cutoff} = \@pdbids;
         }
     }
-    return \%sets;
+    return \%sets, \@queries;
 }
 
 
